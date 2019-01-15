@@ -90,7 +90,7 @@ public class RecordingActivity extends AppCompatActivity {
                 mediaRecorder.start();
                 state = true;
                 Toast.makeText(RecordingActivity.this,
-                        "Recording started!", Toast.LENGTH_SHORT).show();
+                        "Recording has been started!", Toast.LENGTH_SHORT).show();
             } catch (IllegalStateException e) {
                 e.printStackTrace();
             } catch (IOException io) {
