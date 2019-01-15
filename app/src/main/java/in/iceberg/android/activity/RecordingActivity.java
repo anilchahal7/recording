@@ -7,6 +7,7 @@ import android.Manifest;
 import android.annotation.TargetApi;
 import android.content.pm.PackageManager;
 import android.iceberg.in.recording.R;
+import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Bundle;
@@ -19,6 +20,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import java.io.File;
 import java.io.IOException;
 
 
@@ -73,6 +75,18 @@ public class RecordingActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 pauseRecording();
+            }
+        });
+        buttonPlayRecording.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                playRecording();
+            }
+        });
+        buttonDeleteRecording.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                deleteRecording();
             }
         });
     }
@@ -131,4 +145,39 @@ public class RecordingActivity extends AppCompatActivity {
         recordingStopped = false;
     }
 
+    private void playRecording() {
+        File file = new File(output);
+        if (file.exists()) {
+            MediaPlayer mp = new MediaPlayer();
+            try {
+                mp.setDataSource(output);
+            } catch (IllegalArgumentException e) {
+                e.printStackTrace();
+            } catch (IllegalStateException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            try {
+                mp.prepare();
+            } catch (IllegalStateException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            mp.start();
+        } else {
+            Toast.makeText(this,"Recording Doesn't exist", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void deleteRecording() {
+        File file = new File(output);
+        if (file.exists()) {
+            boolean deleted = file.delete();
+            if (deleted) {
+                Toast.makeText(this,"Recording has been Deleted", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
 }
