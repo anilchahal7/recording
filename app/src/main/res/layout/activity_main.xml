@@ -1,21 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <TextView
         android:id="@+id/textview_sound_recorder_heading"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Sound Recorder"
+        android:text="@string/app_title"
         android:layout_centerHorizontal="true"
         android:textSize="32dp"
         android:textStyle="bold"
         android:textColor="#000"
         android:layout_marginTop="32dp"
-        />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent" />
 
+    <ImageView
+        android:id="@+id/recording_image"
+        android:layout_width="0dp"
+        android:layout_height="200dp"
+        android:layout_below="@id/textview_sound_recorder_heading"
+        android:layout_centerHorizontal="true"
+        android:background="@drawable/ic_microphone"
+        app:layout_constraintTop_toBottomOf="@id/textview_sound_recorder_heading"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/button_start_recording"
+        app:layout_constraintDimensionRatio="1:1.2"/>
+    <ImageView
+        android:id="@+id/recording_indicator"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        app:layout_constraintTop_toTopOf="@id/recording_image"
+        app:layout_constraintRight_toRightOf="@id/recording_image"
+        android:background="@drawable/circle"/>
     <Button
         android:id="@+id/button_start_recording"
         android:layout_width="wrap_content"
@@ -23,8 +44,12 @@
         android:layout_alignParentBottom="true"
         android:layout_centerVertical="true"
         android:layout_marginLeft="32dp"
-        android:layout_marginBottom="240dp"
-        android:text="Start" />
+        android:layout_marginBottom="140dp"
+        app:layout_constraintTop_toBottomOf="@id/recording_image"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/button_pause_recording"
+        app:layout_constraintStart_toStartOf="parent"
+        android:text="@string/start" />
 
     <Button
         android:id="@+id/button_pause_recording"
@@ -32,8 +57,12 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="240dp"
-        android:text="Pause" />
+        android:layout_marginBottom="140dp"
+        app:layout_constraintTop_toBottomOf="@id/recording_image"
+        app:layout_constraintLeft_toRightOf="@id/button_start_recording"
+        app:layout_constraintRight_toLeftOf="@id/button_stop_recording"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:text="@string/pause" />
 
     <Button
         android:id="@+id/button_stop_recording"
@@ -42,8 +71,12 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentBottom="true"
         android:layout_marginRight="37dp"
-        android:layout_marginBottom="240dp"
-        android:text="Stop" />
+        android:layout_marginBottom="140dp"
+        app:layout_constraintTop_toBottomOf="@id/recording_image"
+        app:layout_constraintLeft_toRightOf="@id/button_pause_recording"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:text="@string/stop" />
 
     <Button
         android:id="@+id/button_play_recording"
@@ -52,8 +85,12 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentBottom="true"
         android:layout_marginLeft="100dp"
-        android:layout_marginBottom="100dp"
-        android:text="Play" />
+        android:layout_marginBottom="50dp"
+        app:layout_constraintTop_toBottomOf="@id/button_start_recording"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/button_delete_recording"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:text="@string/play" />
 
     <Button
         android:id="@+id/button_delete_recording"
@@ -62,7 +99,11 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentBottom="true"
         android:layout_marginRight="100dp"
-        android:layout_marginBottom="100dp"
-        android:text="Delete" />
+        android:layout_marginBottom="50dp"
+        app:layout_constraintTop_toBottomOf="@id/button_start_recording"
+        app:layout_constraintLeft_toRightOf="@id/button_play_recording"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:text="@string/delete" />
 
-</RelativeLayout>
+</android.support.constraint.ConstraintLayout>

@@ -6,6 +6,12 @@ import butterknife.ButterKnife;
 import android.Manifest;
 import android.annotation.TargetApi;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.LayerDrawable;
 import android.iceberg.in.recording.R;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
@@ -18,6 +24,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import java.io.File;
@@ -41,6 +48,8 @@ public class RecordingActivity extends AppCompatActivity {
     public Button buttonPlayRecording;
     @BindView(R.id.button_delete_recording)
     public Button buttonDeleteRecording;
+    @BindView(R.id.recording_indicator)
+    public ImageView recordingIndicator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,6 +101,7 @@ public class RecordingActivity extends AppCompatActivity {
     }
 
     private void startRecording() {
+        setIndicatorColor(getResources().getColor(R.color.startRecording));
         mediaRecorder = new MediaRecorder();
         output = Environment.getExternalStorageDirectory().getAbsolutePath() + "/recording.mp3";
         if (mediaRecorder != null) {
@@ -104,7 +114,7 @@ public class RecordingActivity extends AppCompatActivity {
                 mediaRecorder.start();
                 state = true;
                 Toast.makeText(RecordingActivity.this,
-                        "Recording has been started!", Toast.LENGTH_SHORT).show();
+                        getResources().getString(R.string.start_recording_toast_message), Toast.LENGTH_SHORT).show();
             } catch (IllegalStateException e) {
                 e.printStackTrace();
             } catch (IOException io) {
@@ -114,23 +124,25 @@ public class RecordingActivity extends AppCompatActivity {
     }
 
     private void stopRecording() {
+        setIndicatorColor(getResources().getColor(R.color.stopRecording));
         if (state && mediaRecorder != null) {
             mediaRecorder.stop();
             mediaRecorder.release();
             state = false;
         } else {
-            Toast.makeText(this, "You are not recording right now!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getResources().getString(R.string.stop_recording_toast_message), Toast.LENGTH_SHORT).show();
         }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void pauseRecording() {
+        setIndicatorColor(getResources().getColor(R.color.pauseRecording));
         if (state && mediaRecorder != null) {
             if (!recordingStopped) {
-                Toast.makeText(this,"Stopped!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this,getResources().getString(R.string.pause_recording_toast_message), Toast.LENGTH_SHORT).show();
                 mediaRecorder.pause();
                 recordingStopped = true;
-                buttonPauseRecording.setText("Resume");
+                buttonPauseRecording.setText(getResources().getString(R.string.resume));
             } else {
                 resumeRecording();
             }
@@ -139,10 +151,19 @@ public class RecordingActivity extends AppCompatActivity {
 
     @TargetApi(Build.VERSION_CODES.N)
     private void resumeRecording() {
-        Toast.makeText(this,"Resume!", Toast.LENGTH_SHORT).show();
+        setIndicatorColor(getResources().getColor(R.color.startRecording));
+        Toast.makeText(this,getResources().getString(R.string.resume_recording_toast_message), Toast.LENGTH_SHORT).show();
         mediaRecorder.resume();
-        buttonPauseRecording.setText("Pause");
+        buttonPauseRecording.setText(getResources().getString(R.string.pause));
         recordingStopped = false;
+    }
+
+    private void setIndicatorColor(int indicatorColor) {
+        LayerDrawable drawableFile = (LayerDrawable) recordingIndicator.getBackground().mutate();
+        GradientDrawable gradientDrawable = (GradientDrawable) drawableFile.findDrawableByLayerId(R.id.circle_background);
+        gradientDrawable.invalidateSelf();
+        drawableFile.invalidateSelf();
+        gradientDrawable.setColor(indicatorColor);
     }
 
     private void playRecording() {
