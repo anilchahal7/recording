@@ -6,10 +6,6 @@ import butterknife.ButterKnife;
 import android.Manifest;
 import android.annotation.TargetApi;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffColorFilter;
-import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.LayerDrawable;
 import android.iceberg.in.recording.R;
@@ -23,6 +19,9 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.LinearInterpolator;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -89,19 +88,23 @@ public class RecordingActivity extends AppCompatActivity {
         buttonPlayRecording.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                playRecording();
+                if (TextUtils.isNotNullOrEmpty(output)) {
+                    playRecording();
+                }
             }
         });
         buttonDeleteRecording.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                deleteRecording();
+                if (TextUtils.isNotNullOrEmpty(output)) {
+                    deleteRecording();
+                }
             }
         });
     }
 
     private void startRecording() {
-        setIndicatorColor(getResources().getColor(R.color.startRecording));
+        setIndicatorColor(getResources().getColor(R.color.startRecording), true);
         mediaRecorder = new MediaRecorder();
         output = Environment.getExternalStorageDirectory().getAbsolutePath() + "/recording.mp3";
         if (mediaRecorder != null) {
@@ -119,27 +122,31 @@ public class RecordingActivity extends AppCompatActivity {
                 e.printStackTrace();
             } catch (IOException io) {
                 io.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
     }
 
     private void stopRecording() {
-        setIndicatorColor(getResources().getColor(R.color.stopRecording));
+        setIndicatorColor(getResources().getColor(R.color.stopRecording), false);
         if (state && mediaRecorder != null) {
             mediaRecorder.stop();
             mediaRecorder.release();
             state = false;
         } else {
-            Toast.makeText(this, getResources().getString(R.string.stop_recording_toast_message), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getResources().getString(R.string.stop_recording_toast_message),
+                    Toast.LENGTH_SHORT).show();
         }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void pauseRecording() {
-        setIndicatorColor(getResources().getColor(R.color.pauseRecording));
+        setIndicatorColor(getResources().getColor(R.color.pauseRecording), false);
         if (state && mediaRecorder != null) {
             if (!recordingStopped) {
-                Toast.makeText(this,getResources().getString(R.string.pause_recording_toast_message), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this,getResources().getString(R.string.pause_recording_toast_message),
+                        Toast.LENGTH_SHORT).show();
                 mediaRecorder.pause();
                 recordingStopped = true;
                 buttonPauseRecording.setText(getResources().getString(R.string.resume));
@@ -151,19 +158,31 @@ public class RecordingActivity extends AppCompatActivity {
 
     @TargetApi(Build.VERSION_CODES.N)
     private void resumeRecording() {
-        setIndicatorColor(getResources().getColor(R.color.startRecording));
-        Toast.makeText(this,getResources().getString(R.string.resume_recording_toast_message), Toast.LENGTH_SHORT).show();
+        setIndicatorColor(getResources().getColor(R.color.startRecording), true);
+        Toast.makeText(this,getResources().getString(R.string.resume_recording_toast_message),
+                Toast.LENGTH_SHORT).show();
         mediaRecorder.resume();
         buttonPauseRecording.setText(getResources().getString(R.string.pause));
         recordingStopped = false;
     }
 
-    private void setIndicatorColor(int indicatorColor) {
+    private void setIndicatorColor(int indicatorColor, boolean animate) {
         LayerDrawable drawableFile = (LayerDrawable) recordingIndicator.getBackground().mutate();
         GradientDrawable gradientDrawable = (GradientDrawable) drawableFile.findDrawableByLayerId(R.id.circle_background);
         gradientDrawable.invalidateSelf();
         drawableFile.invalidateSelf();
         gradientDrawable.setColor(indicatorColor);
+
+        if (animate) {
+            Animation animation = new AlphaAnimation(1, 0);
+            animation.setDuration(200);
+            animation.setInterpolator(new LinearInterpolator());
+            animation.setRepeatCount(Animation.INFINITE);
+            animation.setRepeatMode(Animation.REVERSE);
+            recordingIndicator.startAnimation(animation);
+        } else {
+            recordingIndicator.clearAnimation();
+        }
     }
 
     private void playRecording() {
@@ -178,12 +197,16 @@ public class RecordingActivity extends AppCompatActivity {
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
             try {
                 mp.prepare();
             } catch (IllegalStateException e) {
                 e.printStackTrace();
             } catch (IOException e) {
+                e.printStackTrace();
+            } catch (Exception e) {
                 e.printStackTrace();
             }
             mp.start();
