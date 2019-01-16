@@ -50,6 +50,8 @@ public class RecordingActivity extends AppCompatActivity {
     public Button buttonDeleteRecording;
     @BindView(R.id.recording_indicator)
     public ImageView recordingIndicator;
+    @BindView(R.id.recording_image)
+    public ImageView recordingImage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,10 +103,14 @@ public class RecordingActivity extends AppCompatActivity {
     }
 
     private void startRecording() {
-        setIndicatorColor(getResources().getColor(R.color.startRecording));
         mediaRecorder = new MediaRecorder();
         output = Environment.getExternalStorageDirectory().getAbsolutePath() + "/recording.mp3";
         if (mediaRecorder != null) {
+            recordingImage.setImageDrawable(getResources().getDrawable(R.drawable.ic_microphone_new));
+            setDrawableColor(recordingImage, getResources().getColor(R.color.startRecordingBackground));
+            recordingImage.setColorFilter(ContextCompat.getColor(this, R.color.startRecording), android.graphics.PorterDuff.Mode.SRC_IN);
+//        setDrawableColor(recordingIndicator, getResources().getColor(R.color.startRecording));
+
             mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
             mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
             mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
@@ -124,8 +130,12 @@ public class RecordingActivity extends AppCompatActivity {
     }
 
     private void stopRecording() {
-        setIndicatorColor(getResources().getColor(R.color.stopRecording));
         if (state && mediaRecorder != null) {
+            recordingImage.setImageDrawable(getResources().getDrawable(R.drawable.ic_microphone_new));
+            setDrawableColor(recordingImage, getResources().getColor(R.color.stopRecordingBackground));
+            recordingImage.setColorFilter(ContextCompat.getColor(this, R.color.stopRecording), android.graphics.PorterDuff.Mode.SRC_IN);
+//        setDrawableColor(recordingIndicator, getResources().getColor(R.color.stopRecording));
+
             mediaRecorder.stop();
             mediaRecorder.release();
             state = false;
@@ -136,9 +146,13 @@ public class RecordingActivity extends AppCompatActivity {
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void pauseRecording() {
-        setIndicatorColor(getResources().getColor(R.color.pauseRecording));
         if (state && mediaRecorder != null) {
             if (!recordingStopped) {
+                recordingImage.setImageDrawable(getResources().getDrawable(R.drawable.ic_microphone_new));
+                setDrawableColor(recordingImage, getResources().getColor(R.color.pauseRecordingBackground));
+                recordingImage.setColorFilter(ContextCompat.getColor(this, R.color.pauseRecording), android.graphics.PorterDuff.Mode.SRC_IN);
+//        setDrawableColor(recordingIndicator, getResources().getColor(R.color.pauseRecording));
+
                 Toast.makeText(this,getResources().getString(R.string.pause_recording_toast_message), Toast.LENGTH_SHORT).show();
                 mediaRecorder.pause();
                 recordingStopped = true;
@@ -151,15 +165,18 @@ public class RecordingActivity extends AppCompatActivity {
 
     @TargetApi(Build.VERSION_CODES.N)
     private void resumeRecording() {
-        setIndicatorColor(getResources().getColor(R.color.startRecording));
+        recordingImage.setImageDrawable(getResources().getDrawable(R.drawable.ic_microphone_new));
+        setDrawableColor(recordingImage, getResources().getColor(R.color.startRecordingBackground));
+        recordingImage.setColorFilter(ContextCompat.getColor(this, R.color.startRecording), android.graphics.PorterDuff.Mode.SRC_IN);
+//        setDrawableColor(recordingIndicator, getResources().getColor(R.color.startRecording));
         Toast.makeText(this,getResources().getString(R.string.resume_recording_toast_message), Toast.LENGTH_SHORT).show();
         mediaRecorder.resume();
         buttonPauseRecording.setText(getResources().getString(R.string.pause));
         recordingStopped = false;
     }
 
-    private void setIndicatorColor(int indicatorColor) {
-        LayerDrawable drawableFile = (LayerDrawable) recordingIndicator.getBackground().mutate();
+    private void setDrawableColor(ImageView imageView, int indicatorColor) {
+        LayerDrawable drawableFile = (LayerDrawable) imageView.getBackground().mutate();
         GradientDrawable gradientDrawable = (GradientDrawable) drawableFile.findDrawableByLayerId(R.id.circle_background);
         gradientDrawable.invalidateSelf();
         drawableFile.invalidateSelf();
@@ -169,6 +186,11 @@ public class RecordingActivity extends AppCompatActivity {
     private void playRecording() {
         File file = new File(output);
         if (file.exists()) {
+            recordingImage.setImageDrawable(getResources().getDrawable(R.drawable.ic_speaker_icon));
+            setDrawableColor(recordingImage, getResources().getColor(R.color.full_transparent));
+            recordingImage.setColorFilter(ContextCompat.getColor(this, R.color.black), android.graphics.PorterDuff.Mode.SRC_IN);
+            setDrawableColor(recordingIndicator, getResources().getColor(R.color.full_transparent));
+
             MediaPlayer mp = new MediaPlayer();
             try {
                 mp.setDataSource(output);
@@ -193,6 +215,8 @@ public class RecordingActivity extends AppCompatActivity {
     }
 
     private void deleteRecording() {
+        recordingImage.setImageDrawable(getResources().getDrawable(R.drawable.ic_microphone));
+        setDrawableColor(recordingIndicator, getResources().getColor(R.color.stopRecording));
         File file = new File(output);
         if (file.exists()) {
             boolean deleted = file.delete();
