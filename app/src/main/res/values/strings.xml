@@ -1,4 +1,4 @@
-<resources>
+<resources tools:ignore="ExtraTranslation" xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Recording</string>
     <string name="app_title">Sound Recorder</string>
     <string name="start">Start</string>
