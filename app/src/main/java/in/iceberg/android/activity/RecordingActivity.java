@@ -22,6 +22,7 @@ import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.LinearInterpolator;
+import android.view.animation.ScaleAnimation;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -55,6 +56,8 @@ public class RecordingActivity extends AppCompatActivity {
     public Button buttonDeleteRecording;
     @BindView(R.id.recording_image)
     public ImageView recordingImage;
+    @BindView(R.id.recording_image_background)
+    public ImageView recordingImageBackground;
     @BindView(R.id.adView)
     public AdView mAdView;
 
@@ -235,22 +238,22 @@ public class RecordingActivity extends AppCompatActivity {
         recordingStopped = false;
     }
 
-    private void setDrawableColor(ImageView imageView, int indicatorColor, boolean animate) {
-        LayerDrawable drawableFile = (LayerDrawable) imageView.getBackground().mutate();
+    private void setDrawableColor(int indicatorColor, boolean animate) {
+        LayerDrawable drawableFile = (LayerDrawable) recordingImageBackground.getBackground().mutate();
         GradientDrawable gradientDrawable = (GradientDrawable) drawableFile.findDrawableByLayerId(R.id.circle_background);
         gradientDrawable.invalidateSelf();
         drawableFile.invalidateSelf();
         gradientDrawable.setColor(indicatorColor);
 
-        if (animate) {
-            Animation animation = new AlphaAnimation(1, 0);
+        if (!state) {
+            Animation animation = new ScaleAnimation(1, 1.2f, 1, 1.2f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
             animation.setDuration(200);
             animation.setInterpolator(new LinearInterpolator());
             animation.setRepeatCount(Animation.INFINITE);
             animation.setRepeatMode(Animation.REVERSE);
-            recordingImage.startAnimation(animation);
+            recordingImageBackground.startAnimation(animation);
         } else {
-            recordingImage.clearAnimation();
+            recordingImageBackground.clearAnimation();
         }
     }
 
@@ -304,8 +307,9 @@ public class RecordingActivity extends AppCompatActivity {
 
     private void setImage(int drawable, int drawableColor, int backgroundColor) {
         recordingImage.setImageDrawable(getResources().getDrawable(drawable));
-        recordingImage.setColorFilter(ContextCompat.getColor(this, drawableColor), android.graphics.PorterDuff.Mode.SRC_IN);
-        setDrawableColor(recordingImage, getResources().getColor(backgroundColor), false);
+//        recordingImage.setColorFilter(ContextCompat.getColor(this, drawableColor), android.graphics.PorterDuff.Mode.SRC_IN);
+        recordingImageBackground.setColorFilter(ContextCompat.getColor(this, drawableColor), android.graphics.PorterDuff.Mode.SRC_IN);
+        setDrawableColor(getResources().getColor(backgroundColor), true);
     }
 
     private void resetPauseButton() {
