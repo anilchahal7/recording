@@ -26,6 +26,12 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
+
 import java.io.File;
 import java.io.IOException;
 
@@ -47,16 +53,18 @@ public class RecordingActivity extends AppCompatActivity {
     public Button buttonPlayRecording;
     @BindView(R.id.button_delete_recording)
     public Button buttonDeleteRecording;
-    @BindView(R.id.recording_indicator)
-    public ImageView recordingIndicator;
     @BindView(R.id.recording_image)
     public ImageView recordingImage;
+    @BindView(R.id.adView)
+    public AdView mAdView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
+        MobileAds.initialize(this, Constants.ADMOB_APP_ID);
+        setButtons(state);
 
         buttonStartRecording.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -103,6 +111,59 @@ public class RecordingActivity extends AppCompatActivity {
                 }
             }
         });
+
+        mAdView.setAdSize(AdSize.BANNER);
+        mAdView.setAdUnitId(getString(R.string.banner_home_footer));
+        AdRequest adRequest = new AdRequest.Builder()
+                // Check the LogCat to get your test device ID
+                .addTestDevice("f7c1a9d3a898f3c1")
+                .build();
+        mAdView.setAdListener(new AdListener() {
+            @Override
+            public void onAdLoaded() {
+            }
+            @Override
+            public void onAdClosed() {
+                Toast.makeText(getApplicationContext(), "Ad is closed!", Toast.LENGTH_SHORT).show();
+            }
+            @Override
+            public void onAdFailedToLoad(int errorCode) {
+                Toast.makeText(getApplicationContext(), "Ad failed to load! error code: " + errorCode, Toast.LENGTH_SHORT).show();
+            }
+            @Override
+            public void onAdLeftApplication() {
+                Toast.makeText(getApplicationContext(), "Ad left application!", Toast.LENGTH_SHORT).show();
+            }
+            @Override
+            public void onAdOpened() {
+                super.onAdOpened();
+            }
+        });
+        mAdView.loadAd(adRequest);
+    }
+
+    @Override
+    public void onPause() {
+        if (mAdView != null) {
+            mAdView.pause();
+        }
+        super.onPause();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (mAdView != null) {
+            mAdView.resume();
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        if (mAdView != null) {
+            mAdView.destroy();
+        }
+        super.onDestroy();
     }
 
     private void startRecording() {
@@ -197,8 +258,6 @@ public class RecordingActivity extends AppCompatActivity {
         File file = new File(output);
         if (file.exists() && !state) {
             setImage(R.drawable.ic_speaker_icon, R.color.black, R.color.full_transparent);
-
-            setDrawableColor(recordingIndicator, getResources().getColor(R.color.full_transparent), false);
 
             MediaPlayer mp = new MediaPlayer();
             try {

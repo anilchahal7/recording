@@ -2,7 +2,8 @@
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:ads="http://schemas.android.com/tools">
 
     <TextView
         android:id="@+id/textview_sound_recorder_heading"
@@ -32,13 +33,6 @@
         app:layout_constraintBottom_toTopOf="@id/button_start_recording"
         android:padding="20dp"
         app:layout_constraintDimensionRatio="1:1.6" />
-    <ImageView
-        android:id="@+id/recording_indicator"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        app:layout_constraintTop_toTopOf="@id/recording_image"
-        app:layout_constraintRight_toRightOf="@id/recording_image"
-        android:background="@drawable/circle"/>
 
     <Button
         android:id="@+id/button_start_recording"
@@ -108,5 +102,16 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         android:text="@string/delete" />
+
+    <com.google.android.gms.ads.AdView
+        android:id="@+id/adView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        ads:adSize="BANNER"
+        ads:adUnitId="@string/banner_home_footer"
+        app:layout_constraintTop_toBottomOf="@id/button_delete_recording"
+        app:layout_constraintBottom_toBottomOf="parent">
+    </com.google.android.gms.ads.AdView>
 
 </android.support.constraint.ConstraintLayout>
