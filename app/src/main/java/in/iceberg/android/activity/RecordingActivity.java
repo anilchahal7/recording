@@ -113,6 +113,10 @@ public class RecordingActivity extends AppCompatActivity {
 
         mAdView.setAdSize(AdSize.BANNER);
         mAdView.setAdUnitId(getString(R.string.banner_home_footer));
+        AdRequest adRequest = new AdRequest.Builder()
+                // Check the LogCat to get your test device ID
+                .addTestDevice("f7c1a9d3a898f3c1")
+                .build();
         mAdView.setAdListener(new AdListener() {
             @Override
             public void onAdLoaded() {
@@ -134,11 +138,6 @@ public class RecordingActivity extends AppCompatActivity {
                 super.onAdOpened();
             }
         });
-        AdRequest adRequest = new AdRequest.Builder()
-                .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
-                // Check the LogCat to get your test device ID
-                .addTestDevice("f7c1a9d3a898f3c1")
-                .build();
         mAdView.loadAd(adRequest);
     }
 
