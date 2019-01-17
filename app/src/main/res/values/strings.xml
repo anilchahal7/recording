@@ -9,8 +9,12 @@
     <string name="delete">Delete</string>
     <string name="start_recording_toast_message">Recording has been started!</string>
     <string name="stop_recording_toast_message">You are not recording right now!</string>
-    <string name="pause_recording_toast_message">Stopped!</string>
-    <string name="resume_recording_toast_message">Resume</string>
+    <string name="pause_recording_toast_message">Recording has been paused</string>
+    <string name="resume_recording_toast_message">Recording has been resumed</string>
+    <string name="play_recording_toast_message">Recording is being played</string>
+    <string name="stop_recording_before_toast_message">Stop recording before performing this action</string>
+    <string name="deleted_recording_toast_message">Recording has been Deleted</string>
+    <string name="no_recording_toast_message">Recording Doesn\'t exist</string>
 
     <!-- AdMob ad unit IDs -->
     <string name="admob_app_id">ca-app-pub-1624130677099435~5935616527</string>
