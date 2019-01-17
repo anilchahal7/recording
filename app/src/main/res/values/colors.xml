@@ -4,7 +4,12 @@
     <color name="colorPrimaryDark">#00574B</color>
     <color name="colorAccent">#D81B60</color>
     <color name="stopRecording">#FF0000</color>
+    <color name="stopRecordingBackground">#2cFF0000</color>
     <color name="startRecording">#53e578</color>
+    <color name="startRecordingBackground">#2c53e578</color>
     <color name="pauseRecording">#fcdb38</color>
+    <color name="pauseRecordingBackground">#2cfcdb38</color>
     <color name="full_transparent">#00000000</color>
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
 </resources>

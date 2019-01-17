@@ -5,6 +5,8 @@
 /.idea/libraries
 /.idea/modules.xml
 /.idea/workspace.xml
+/.ides/misc.xml
+/.idea/assetWizardSettings.xml
 /.idea/*
 .DS_Store
 /build

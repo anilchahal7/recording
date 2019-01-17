@@ -14,11 +14,11 @@
                         <option name="values">
                           <map>
                             <entry key="assetSourceType" value="FILE" />
-                            <entry key="height" value="64" />
-                            <entry key="outputName" value="ic_microphone" />
+                            <entry key="height" value="1280" />
+                            <entry key="outputName" value="ic_microphone_new" />
                             <entry key="overrideSize" value="true" />
-                            <entry key="sourceFile" value="$USER_HOME$/Downloads/retro-icons/SVGs/retro_icons-10.svg" />
-                            <entry key="width" value="52" />
+                            <entry key="sourceFile" value="$USER_HOME$/Downloads/microphone.svg" />
+                            <entry key="width" value="655" />
                           </map>
                         </option>
                       </PersistentState>

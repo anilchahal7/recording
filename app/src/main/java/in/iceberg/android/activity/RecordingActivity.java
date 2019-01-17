@@ -22,6 +22,7 @@ import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.LinearInterpolator;
+import android.view.animation.ScaleAnimation;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -53,8 +54,10 @@ public class RecordingActivity extends AppCompatActivity {
     public Button buttonPlayRecording;
     @BindView(R.id.button_delete_recording)
     public Button buttonDeleteRecording;
-    @BindView(R.id.recording_indicator)
-    public ImageView recordingIndicator;
+    @BindView(R.id.recording_image)
+    public ImageView recordingImage;
+    @BindView(R.id.recording_image_background)
+    public ImageView recordingImageBackground;
     @BindView(R.id.adView)
     public AdView mAdView;
 
@@ -64,6 +67,7 @@ public class RecordingActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
         MobileAds.initialize(this, Constants.ADMOB_APP_ID);
+        setButtons(state);
 
         buttonStartRecording.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -166,10 +170,12 @@ public class RecordingActivity extends AppCompatActivity {
     }
 
     private void startRecording() {
-        setIndicatorColor(getResources().getColor(R.color.startRecording), true);
         mediaRecorder = new MediaRecorder();
         output = Environment.getExternalStorageDirectory().getAbsolutePath() + "/recording.mp3";
         if (mediaRecorder != null) {
+            setButtons(true);
+            setImage(R.drawable.ic_microphone_new, R.color.startRecording, R.color.startRecordingBackground);
+
             mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
             mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
             mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
@@ -180,6 +186,7 @@ public class RecordingActivity extends AppCompatActivity {
                 state = true;
                 Toast.makeText(RecordingActivity.this,
                         getResources().getString(R.string.start_recording_toast_message), Toast.LENGTH_SHORT).show();
+                resetPauseButton();
             } catch (IllegalStateException e) {
                 e.printStackTrace();
             } catch (IOException io) {
@@ -191,11 +198,14 @@ public class RecordingActivity extends AppCompatActivity {
     }
 
     private void stopRecording() {
-        setIndicatorColor(getResources().getColor(R.color.stopRecording), false);
         if (state && mediaRecorder != null) {
+            setButtons(false);
+            setImage(R.drawable.ic_microphone_new, R.color.stopRecording, R.color.stopRecordingBackground);
+
             mediaRecorder.stop();
             mediaRecorder.release();
             state = false;
+            resetPauseButton();
         } else {
             Toast.makeText(this, getResources().getString(R.string.stop_recording_toast_message),
                     Toast.LENGTH_SHORT).show();
@@ -204,11 +214,11 @@ public class RecordingActivity extends AppCompatActivity {
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void pauseRecording() {
-        setIndicatorColor(getResources().getColor(R.color.pauseRecording), false);
         if (state && mediaRecorder != null) {
             if (!recordingStopped) {
-                Toast.makeText(this,getResources().getString(R.string.pause_recording_toast_message),
-                        Toast.LENGTH_SHORT).show();
+                setImage(R.drawable.ic_microphone_new, R.color.pauseRecording, R.color.pauseRecordingBackground);
+
+                Toast.makeText(this,getResources().getString(R.string.pause_recording_toast_message), Toast.LENGTH_SHORT).show();
                 mediaRecorder.pause();
                 recordingStopped = true;
                 buttonPauseRecording.setText(getResources().getString(R.string.resume));
@@ -220,36 +230,38 @@ public class RecordingActivity extends AppCompatActivity {
 
     @TargetApi(Build.VERSION_CODES.N)
     private void resumeRecording() {
-        setIndicatorColor(getResources().getColor(R.color.startRecording), true);
-        Toast.makeText(this,getResources().getString(R.string.resume_recording_toast_message),
-                Toast.LENGTH_SHORT).show();
+        setImage(R.drawable.ic_microphone_new, R.color.startRecording, R.color.startRecordingBackground);
+
+        Toast.makeText(this,getResources().getString(R.string.resume_recording_toast_message), Toast.LENGTH_SHORT).show();
         mediaRecorder.resume();
         buttonPauseRecording.setText(getResources().getString(R.string.pause));
         recordingStopped = false;
     }
 
-    private void setIndicatorColor(int indicatorColor, boolean animate) {
-        LayerDrawable drawableFile = (LayerDrawable) recordingIndicator.getBackground().mutate();
+    private void setDrawableColor(int indicatorColor, boolean animate) {
+        LayerDrawable drawableFile = (LayerDrawable) recordingImageBackground.getBackground().mutate();
         GradientDrawable gradientDrawable = (GradientDrawable) drawableFile.findDrawableByLayerId(R.id.circle_background);
         gradientDrawable.invalidateSelf();
         drawableFile.invalidateSelf();
         gradientDrawable.setColor(indicatorColor);
 
-        if (animate) {
-            Animation animation = new AlphaAnimation(1, 0);
+        if (!state) {
+            Animation animation = new ScaleAnimation(1, 1.2f, 1, 1.2f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
             animation.setDuration(200);
             animation.setInterpolator(new LinearInterpolator());
             animation.setRepeatCount(Animation.INFINITE);
             animation.setRepeatMode(Animation.REVERSE);
-            recordingIndicator.startAnimation(animation);
+            recordingImageBackground.startAnimation(animation);
         } else {
-            recordingIndicator.clearAnimation();
+            recordingImageBackground.clearAnimation();
         }
     }
 
     private void playRecording() {
         File file = new File(output);
-        if (file.exists()) {
+        if (file.exists() && !state) {
+            setImage(R.drawable.ic_speaker_icon, R.color.black, R.color.full_transparent);
+
             MediaPlayer mp = new MediaPlayer();
             try {
                 mp.setDataSource(output);
@@ -272,6 +284,8 @@ public class RecordingActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
             mp.start();
+        } else if (state) {
+            Toast.makeText(this,"Stop recording before playing audio", Toast.LENGTH_SHORT).show();
         } else {
             Toast.makeText(this,"Recording Doesn't exist", Toast.LENGTH_SHORT).show();
         }
@@ -279,11 +293,43 @@ public class RecordingActivity extends AppCompatActivity {
 
     private void deleteRecording() {
         File file = new File(output);
-        if (file.exists()) {
+        if (file.exists() && !state) {
+            setImage(R.drawable.ic_microphone_new, R.color.black, R.color.full_transparent);
+
             boolean deleted = file.delete();
             if (deleted) {
                 Toast.makeText(this,"Recording has been Deleted", Toast.LENGTH_SHORT).show();
             }
+        } else if (state) {
+            Toast.makeText(this,"Stop recording before playing audio", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void setImage(int drawable, int drawableColor, int backgroundColor) {
+        recordingImage.setImageDrawable(getResources().getDrawable(drawable));
+//        recordingImage.setColorFilter(ContextCompat.getColor(this, drawableColor), android.graphics.PorterDuff.Mode.SRC_IN);
+        recordingImageBackground.setColorFilter(ContextCompat.getColor(this, drawableColor), android.graphics.PorterDuff.Mode.SRC_IN);
+        setDrawableColor(getResources().getColor(backgroundColor), true);
+    }
+
+    private void resetPauseButton() {
+        recordingStopped = false;
+        buttonPauseRecording.setText(getResources().getString(R.string.pause));
+    }
+
+    private void setButtons(boolean isStarted) {
+        if (isStarted) {
+            buttonStartRecording.setEnabled(false);
+            buttonPauseRecording.setEnabled(true);
+            buttonStopRecording.setEnabled(true);
+            buttonPlayRecording.setEnabled(false);
+            buttonDeleteRecording.setEnabled(false);
+        } else {
+            buttonStartRecording.setEnabled(true);
+            buttonPauseRecording.setEnabled(false);
+            buttonStopRecording.setEnabled(false);
+            buttonPlayRecording.setEnabled(true);
+            buttonDeleteRecording.setEnabled(true);
         }
     }
 }
