@@ -9,6 +9,7 @@ import android.annotation.TargetApi;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.LayerDrawable;
+import android.iceberg.in.recording.BuildConfig;
 import android.iceberg.in.recording.R;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
@@ -71,8 +72,8 @@ public class RecordingActivity extends AppCompatActivity {
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-        MobileAds.initialize(this, Constants.ADMOB_APP_ID);
         setButtons(STOP);
+        MobileAds.initialize(this, BuildConfig.ADMOB_APP_ID);
 
         buttonStartRecording.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -120,15 +121,17 @@ public class RecordingActivity extends AppCompatActivity {
             }
         });
 
-        mAdView.setAdSize(AdSize.BANNER);
-        mAdView.setAdUnitId(getString(R.string.banner_home_footer));
+        mAdView = new AdView(this);
+        mAdView.setAdSize(AdSize.SMART_BANNER);
+        mAdView.setAdUnitId(BuildConfig.BANNER_HOME_FOOTER);
         AdRequest adRequest = new AdRequest.Builder()
-                // Check the LogCat to get your test device ID
-                .addTestDevice("f7c1a9d3a898f3c1")
+                .addTestDevice("61ef3aeee61b7d1b")
                 .build();
+
         mAdView.setAdListener(new AdListener() {
             @Override
             public void onAdLoaded() {
+                Toast.makeText(getApplicationContext(), "Ad is loaded", Toast.LENGTH_SHORT).show();
             }
             @Override
             public void onAdClosed() {
