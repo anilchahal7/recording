@@ -8,6 +8,7 @@ import android.annotation.TargetApi;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.LayerDrawable;
+import android.iceberg.in.recording.BuildConfig;
 import android.iceberg.in.recording.R;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
@@ -19,7 +20,6 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.LinearInterpolator;
 import android.view.animation.ScaleAnimation;
@@ -66,7 +66,7 @@ public class RecordingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-        MobileAds.initialize(this, Constants.ADMOB_APP_ID);
+        MobileAds.initialize(this, BuildConfig.ADMOB_APP_ID);
         setButtons(state);
 
         buttonStartRecording.setOnClickListener(new View.OnClickListener() {
@@ -115,15 +115,17 @@ public class RecordingActivity extends AppCompatActivity {
             }
         });
 
-        mAdView.setAdSize(AdSize.BANNER);
-        mAdView.setAdUnitId(getString(R.string.banner_home_footer));
+        mAdView = new AdView(this);
+        mAdView.setAdSize(AdSize.SMART_BANNER);
+        mAdView.setAdUnitId(BuildConfig.BANNER_HOME_FOOTER);
         AdRequest adRequest = new AdRequest.Builder()
-                // Check the LogCat to get your test device ID
-                .addTestDevice("f7c1a9d3a898f3c1")
+                .addTestDevice("61ef3aeee61b7d1b")
                 .build();
+
         mAdView.setAdListener(new AdListener() {
             @Override
             public void onAdLoaded() {
+                Toast.makeText(getApplicationContext(), "Ad is loaded", Toast.LENGTH_SHORT).show();
             }
             @Override
             public void onAdClosed() {

@@ -11,8 +11,4 @@
     <string name="stop_recording_toast_message">You are not recording right now!</string>
     <string name="pause_recording_toast_message">Stopped!</string>
     <string name="resume_recording_toast_message">Resume</string>
-
-    <!-- AdMob ad unit IDs -->
-    <string name="admob_app_id">ca-app-pub-1624130677099435~5935616527</string>
-    <string name="banner_home_footer">ca-app-pub-1624130677099435/2609904594</string>
 </resources>
