@@ -1,4 +1,4 @@
-package in.iceberg.android.activity;
+package in.iceberg.android.apputil;
 
 public final class TextUtils {
     public static boolean isNull(String string) {
