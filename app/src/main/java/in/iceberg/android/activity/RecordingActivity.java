@@ -345,6 +345,19 @@ public class RecordingActivity extends AppCompatActivity {
 
     }
 
+    private void shareRecording() {
+        if (TextUtils.isNotNullOrEmpty(output)) {
+            File file = new File(output);
+            if (file.exists()) {
+                Uri uri = Uri.parse(output);
+                Intent share = new Intent(Intent.ACTION_SEND);
+                share.setType("audio/*");
+                share.putExtra(Intent.EXTRA_STREAM, uri);
+                startActivity(Intent.createChooser(share, "Share Sound File"));
+            }
+        }
+    }
+
     private void deleteRecording() {
         File file = new File(output);
         if (file.exists() && !state) {
