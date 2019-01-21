@@ -3,9 +3,14 @@ package in.iceberg.android.activity;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import es.dmoral.toasty.Toasty;
+import in.iceberg.android.apputil.Util;
+import in.iceberg.android.db.AppRecordData;
+import in.iceberg.android.apputil.TextUtils;
 
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.LayerDrawable;
@@ -13,9 +18,12 @@ import android.iceberg.in.recording.BuildConfig;
 import android.iceberg.in.recording.R;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -43,8 +51,7 @@ public class RecordingActivity extends AppCompatActivity {
 
     private String output;
     private MediaRecorder mediaRecorder;
-    private boolean state;
-    private boolean recordingStopped;
+    private boolean state, recordingStopped;
 
     @BindView(R.id.button_start_recording)
     public ImageButton buttonStartRecording;
@@ -63,8 +70,8 @@ public class RecordingActivity extends AppCompatActivity {
     @BindView(R.id.adView)
     public AdView mAdView;
 
-    private final int START = 0;
-    private final int STOP = 1;
+    private final int START = 0, STOP = 1;
+    private static final int PERMISSIONS_REQUEST_CODE = 1001;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,17 +85,7 @@ public class RecordingActivity extends AppCompatActivity {
         buttonStartRecording.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (ContextCompat.checkSelfPermission(RecordingActivity.this,
-                    Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED &&
-                    ContextCompat.checkSelfPermission(RecordingActivity.this,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                    String[] permissions = {android.Manifest.permission.RECORD_AUDIO,
-                            android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                            android.Manifest.permission.READ_EXTERNAL_STORAGE};
-                    ActivityCompat.requestPermissions(RecordingActivity.this, permissions, 0);
-                } else {
-                    startRecording();
-                }
+                handleRecordAndStoragePermissions();
             }
         });
         buttonStopRecording.setOnClickListener(new View.OnClickListener() {
@@ -178,6 +175,9 @@ public class RecordingActivity extends AppCompatActivity {
     }
 
     private void startRecording() {
+        if (AppRecordData.isRecordPermissionDenied() || AppRecordData.isStoragePermissionDenied()) {
+            return;
+        }
         recordingStopped = false;
         mediaRecorder = new MediaRecorder();
         output = Environment.getExternalStorageDirectory().getAbsolutePath() + "/recording.mp3";
@@ -384,4 +384,98 @@ public class RecordingActivity extends AppCompatActivity {
                 android.graphics.PorterDuff.Mode.SRC_IN);
         imageButton.setBackground(getResources().getDrawable(R.drawable.white_circle_grey_border));
     }
+
+    // App Permissions Allow and Deny ...
+    private void handleRecordAndStoragePermissions() {
+        if (ContextCompat.checkSelfPermission(RecordingActivity.this,
+                Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(RecordingActivity.this,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            String[] permissions = {android.Manifest.permission.RECORD_AUDIO,
+                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                    android.Manifest.permission.READ_EXTERNAL_STORAGE};
+            ActivityCompat.requestPermissions(RecordingActivity.this,
+                    permissions, PERMISSIONS_REQUEST_CODE);
+        } else if (!AppRecordData.isStoragePermissionDenied() &&
+                !AppRecordData.isRecordPermissionDenied() ) {
+            startRecording();
+        } else {
+            checkRecordPermission();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        boolean grantStatus = false;
+        if (requestCode == PERMISSIONS_REQUEST_CODE &&
+                grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            grantStatus = true;
+            for (int i : grantResults) {
+                if (i != PackageManager.PERMISSION_GRANTED) {
+                    grantStatus = false;
+                }
+            }
+        }
+        if (grantStatus) {
+            AppRecordData.setRecordPermissionDenied(false);
+            AppRecordData.setStoragePermissionDenied(false);
+            startRecording();
+        } else {
+            AppRecordData.setRecordPermissionDenied(true);
+            AppRecordData.setStoragePermissionDenied(true);
+            checkRecordPermission();
+        }
+    }
+
+    private void checkRecordPermission() {
+        if (AppRecordData.isRecordPermissionDenied()) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(RecordingActivity.this,
+                    Manifest.permission.RECORD_AUDIO) ||
+                    ActivityCompat.shouldShowRequestPermissionRationale(RecordingActivity.this,
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE) ||
+                    ActivityCompat.shouldShowRequestPermissionRationale(RecordingActivity.this,
+                            Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                String[] permissions = {android.Manifest.permission.RECORD_AUDIO,
+                        android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                        android.Manifest.permission.READ_EXTERNAL_STORAGE};
+                ActivityCompat.requestPermissions(RecordingActivity.this,
+                        permissions, PERMISSIONS_REQUEST_CODE);
+            } else if (ContextCompat.checkSelfPermission(RecordingActivity.this,
+                    Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED &&
+                    ContextCompat.checkSelfPermission(RecordingActivity.this,
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                AppRecordData.setStoragePermissionDenied(false);
+                AppRecordData.setRecordPermissionDenied(false);
+                startRecording();
+            } else if ((!ActivityCompat.shouldShowRequestPermissionRationale(RecordingActivity.this,
+                    Manifest.permission.RECORD_AUDIO) || AppRecordData.isRecordPermissionDenied()) ||
+                    (!ActivityCompat.shouldShowRequestPermissionRationale(RecordingActivity.this,
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE) || AppRecordData.isStoragePermissionDenied())) {
+                Util.showAlertDialog(getString(R.string.permission_needed),
+                        getString(R.string.permission_denied_read),
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                goToSettings();
+                            }
+                        },
+                        "OPEN SETTINGS",
+                        null,
+                        "CANCEL", this);
+            }
+        } else {
+            startRecording();
+        }
+    }
+
+    private void goToSettings() {
+        Intent myAppSettings = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                Uri.parse("package:" + RecordingActivity.this.getPackageName()));
+        myAppSettings.addCategory(Intent.CATEGORY_DEFAULT);
+        myAppSettings.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(myAppSettings);
+    }
+
 }

@@ -16,6 +16,9 @@
     <string name="deleted_recording_toast_message">Recording has been Deleted</string>
     <string name="no_recording_toast_message">Recording Doesn\'t exist</string>
 
+    <string name="permission_needed">Access Your Microphone</string>
+    <string name="permission_denied_read">To enable access to your microphone and recording, go to Settings > Permissions and turn on Microphone and Storage.</string>
+
     <!-- AdMob ad unit IDs -->
     <string name="admob_app_id">ca-app-pub-1624130677099435~5935616527</string>
     <string name="banner_home_footer">ca-app-pub-1624130677099435/2609904594</string>
