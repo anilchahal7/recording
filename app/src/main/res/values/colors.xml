@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources tools:ignore="ExtraTranslation" xmlns:tools="http://schemas.android.com/tools">
-    <color name="colorPrimary">#008577</color>
-    <color name="colorPrimaryDark">#00574B</color>
+    <color name="colorPrimary">#75c6ff</color>
+    <color name="colorPrimaryDark">#23B4F3</color>
     <color name="colorAccent">#D81B60</color>
     <color name="stopRecording">#FF0000</color>
     <color name="stopRecordingBackground">#2cFF0000</color>
@@ -14,4 +14,5 @@
     <color name="black_56">#8c000000</color>
     <color name="black_36">#5d000000</color>
     <color name="white">#FFFFFF</color>
+
 </resources>
