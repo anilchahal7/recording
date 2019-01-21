@@ -305,11 +305,13 @@ public class RecordingActivity extends AppCompatActivity {
             }
             mp.start();
             disableButton(buttonStartRecording);
+            disableButton(buttonDeleteRecording);
             mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 @Override
                 public void onCompletion(MediaPlayer mp) {
                     setImage(R.drawable.ic_microphone, R.color.black, R.color.full_transparent);
                     enableButton(buttonStartRecording);
+                    enableButton(buttonDeleteRecording);
                 }
             });
             Toasty.custom(this, getResources().getString(R.string.play_recording_toast_message),
