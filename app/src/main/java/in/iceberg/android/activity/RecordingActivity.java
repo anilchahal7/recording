@@ -51,7 +51,7 @@ public class RecordingActivity extends AppCompatActivity {
 
     private String output;
     private MediaRecorder mediaRecorder;
-    private boolean state, recordingStopped;
+    private boolean state, recordingStopped, playbackStopped;
 
     @BindView(R.id.button_start_recording)
     public ImageButton buttonStartRecording;
@@ -69,6 +69,7 @@ public class RecordingActivity extends AppCompatActivity {
     public ImageView recordingImageBackground;
     @BindView(R.id.adView)
     public AdView mAdView;
+    private MediaPlayer mp;
 
     private final int START = 0, STOP = 1;
     private static final int PERMISSIONS_REQUEST_CODE = 1001;
@@ -80,6 +81,7 @@ public class RecordingActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
         setButtons(STOP);
+        mp = new MediaPlayer();
         MobileAds.initialize(this, BuildConfig.ADMOB_APP_ID);
 
         buttonStartRecording.setOnClickListener(new View.OnClickListener() {
@@ -178,6 +180,7 @@ public class RecordingActivity extends AppCompatActivity {
         if (AppRecordData.isRecordPermissionDenied() || AppRecordData.isStoragePermissionDenied()) {
             return;
         }
+        playbackStopped = true;
         recordingStopped = false;
         mediaRecorder = new MediaRecorder();
         output = Environment.getExternalStorageDirectory().getAbsolutePath() + "/recording.mp3";
@@ -209,6 +212,7 @@ public class RecordingActivity extends AppCompatActivity {
 
     private void stopRecording() {
         if (state && mediaRecorder != null) {
+            playbackStopped = true;
             recordingStopped = true;
             setButtons(STOP);
             setImage(R.drawable.ic_microphone, R.color.stopRecording, R.color.stopRecordingBackground);
@@ -231,6 +235,7 @@ public class RecordingActivity extends AppCompatActivity {
     private void pauseRecording() {
         if (state && mediaRecorder != null) {
             if (!recordingStopped) {
+                playbackStopped = true;
                 recordingStopped = true;
                 setImage(R.drawable.ic_microphone, R.color.pauseRecording, R.color.pauseRecordingBackground);
 
@@ -247,6 +252,7 @@ public class RecordingActivity extends AppCompatActivity {
 
     @TargetApi(Build.VERSION_CODES.N)
     private void resumeRecording() {
+        playbackStopped = true;
         recordingStopped = false;
         setImage(R.drawable.ic_microphone, R.color.startRecording, R.color.startRecordingBackground);
 
@@ -264,7 +270,7 @@ public class RecordingActivity extends AppCompatActivity {
         drawableFile.invalidateSelf();
         gradientDrawable.setColor(indicatorColor);
 
-        if (!recordingStopped) {
+        if (!recordingStopped || !playbackStopped) {
             Animation animation = new ScaleAnimation(1, 1.2f, 1, 1.2f,
                     Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
             animation.setDuration(200);
@@ -278,48 +284,65 @@ public class RecordingActivity extends AppCompatActivity {
     }
 
     private void playRecording() {
-        File file = new File(output);
-        if (file.exists() && !state) {
-            setImage(R.drawable.ic_speaker_icon, R.color.black, R.color.startRecordingBackground);
-
-            MediaPlayer mp = new MediaPlayer();
-            try {
-                mp.setDataSource(output);
-            } catch (IllegalArgumentException e) {
-                e.printStackTrace();
-            } catch (IllegalStateException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            try {
-                mp.prepare();
-            } catch (IllegalStateException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            mp.start();
-            disableButton(buttonStartRecording);
-            mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                @Override
-                public void onCompletion(MediaPlayer mp) {
-                    setImage(R.drawable.ic_microphone, R.color.black, R.color.full_transparent);
-                    enableButton(buttonStartRecording);
-                }
-            });
-            Toasty.custom(this, getResources().getString(R.string.play_recording_toast_message),
-                    getResources().getDrawable(R.drawable.ic_play), getResources().getColor(R.color.startRecording),
+        if (mp.isPlaying()) {
+            recordingStopped = true;
+            playbackStopped = true;
+            mp.stop();
+            buttonPlayRecording.setImageResource(R.drawable.ic_play);
+            enableButton(buttonStartRecording);
+            enableButton(buttonDeleteRecording);
+            setImage(R.drawable.ic_speaker_icon, R.color.black, R.color.full_transparent);
+            Toasty.custom(this, getResources().getString(R.string.stop_playback_toast_message),
+                    getResources().getDrawable(R.drawable.ic_stop), getResources().getColor(R.color.stopRecording),
                     Toast.LENGTH_SHORT, true, true).show();
-        } else if (state) {
-            Toasty.error(this, getResources().getString(R.string.stop_recording_before_toast_message)).show();
-        } else {
-            Toasty.error(this, getResources().getString(R.string.no_recording_toast_message)).show();
+        } else{
+            recordingStopped = true;
+            playbackStopped = false;
+            File file = new File(output);
+            if (file.exists() && !state) {
+                setImage(R.drawable.ic_speaker_icon, R.color.black, R.color.startRecordingBackground);
+                try {
+                    mp.setDataSource(output);
+                } catch (IllegalArgumentException e) {
+                    e.printStackTrace();
+                } catch (IllegalStateException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                try {
+                    mp.prepare();
+                } catch (IllegalStateException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                mp.start();
+                buttonPlayRecording.setImageResource(R.drawable.ic_stop);
+                disableButton(buttonStartRecording);
+                disableButton(buttonDeleteRecording);
+                mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                    @Override
+                    public void onCompletion(MediaPlayer mp) {
+                        setImage(R.drawable.ic_microphone, R.color.black, R.color.full_transparent);
+                        enableButton(buttonStartRecording);
+                        enableButton(buttonDeleteRecording);
+                    }
+                });
+                Toasty.custom(this, getResources().getString(R.string.play_recording_toast_message),
+                        getResources().getDrawable(R.drawable.ic_play), getResources().getColor(R.color.startRecording),
+                        Toast.LENGTH_SHORT, true, true).show();
+            } else if (state) {
+                Toasty.error(this, getResources().getString(R.string.stop_recording_before_toast_message)).show();
+            } else {
+                Toasty.error(this, getResources().getString(R.string.no_recording_toast_message)).show();
+            }
         }
+
     }
 
     private void shareRecording() {
