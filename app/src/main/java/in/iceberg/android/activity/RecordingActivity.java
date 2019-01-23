@@ -69,7 +69,7 @@ public class RecordingActivity extends AppCompatActivity {
     public ImageView recordingImageBackground;
     @BindView(R.id.adView)
     public AdView mAdView;
-    private MediaPlayer mp;
+    private MediaPlayer mediaPlayer;
 
     private final int START = 0, STOP = 1;
     private static final int PERMISSIONS_REQUEST_CODE = 1001;
@@ -81,13 +81,16 @@ public class RecordingActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
         setButtons(STOP);
-        mp = new MediaPlayer();
+        mediaPlayer = new MediaPlayer();
         MobileAds.initialize(this, BuildConfig.ADMOB_APP_ID);
 
         buttonStartRecording.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                handleRecordAndStoragePermissions();
+                // Start Main Activity ...
+                Intent intent = new Intent(RecordingActivity.this, HomepageActivity.class);
+                startActivity(intent);
+                //handleRecordAndStoragePermissions();
             }
         });
         buttonStopRecording.setOnClickListener(new View.OnClickListener() {
@@ -284,10 +287,10 @@ public class RecordingActivity extends AppCompatActivity {
     }
 
     private void playRecording() {
-        if (mp.isPlaying()) {
+        if (mediaPlayer.isPlaying()) {
             recordingStopped = true;
             playbackStopped = true;
-            mp.stop();
+            mediaPlayer.stop();
             buttonPlayRecording.setImageResource(R.drawable.ic_play);
             enableButton(buttonStartRecording);
             enableButton(buttonDeleteRecording);
@@ -302,7 +305,7 @@ public class RecordingActivity extends AppCompatActivity {
             if (file.exists() && !state) {
                 setImage(R.drawable.ic_speaker_icon, R.color.black, R.color.startRecordingBackground);
                 try {
-                    mp.setDataSource(output);
+                    mediaPlayer.setDataSource(output);
                 } catch (IllegalArgumentException e) {
                     e.printStackTrace();
                 } catch (IllegalStateException e) {
@@ -313,7 +316,7 @@ public class RecordingActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
                 try {
-                    mp.prepare();
+                    mediaPlayer.prepare();
                 } catch (IllegalStateException e) {
                     e.printStackTrace();
                 } catch (IOException e) {
@@ -321,13 +324,13 @@ public class RecordingActivity extends AppCompatActivity {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                mp.start();
+                mediaPlayer.start();
                 buttonPlayRecording.setImageResource(R.drawable.ic_stop);
                 disableButton(buttonStartRecording);
                 disableButton(buttonDeleteRecording);
-                mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                     @Override
-                    public void onCompletion(MediaPlayer mp) {
+                    public void onCompletion(MediaPlayer mediaPlayer) {
                         setImage(R.drawable.ic_microphone, R.color.black, R.color.full_transparent);
                         enableButton(buttonStartRecording);
                         enableButton(buttonDeleteRecording);

@@ -92,35 +92,6 @@
         app:layout_constraintRight_toLeftOf="@id/button_play_recording"
         app:layout_constraintTop_toBottomOf="@id/recording_image" />
 
-    <ImageButton
-        android:id="@+id/button_play_recording"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
-        android:layout_marginTop="56dp"
-        android:background="@drawable/white_circle_grey_border"
-        android:contentDescription="@string/play"
-        android:padding="12dp"
-        android:scaleType="centerInside"
-        android:src="@drawable/ic_play"
-        android:visibility="visible"
-        app:layout_constraintLeft_toRightOf="@id/button_stop_recording"
-        app:layout_constraintRight_toLeftOf="@id/button_delete_recording"
-        app:layout_constraintTop_toBottomOf="@id/recording_image" />
-
-    <ImageButton
-        android:id="@+id/button_delete_recording"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
-        android:layout_marginTop="56dp"
-        android:background="@drawable/white_circle_grey_border"
-        android:contentDescription="@string/delete"
-        android:padding="12dp"
-        android:scaleType="centerInside"
-        android:src="@drawable/ic_delete"
-        android:visibility="visible"
-        app:layout_constraintLeft_toRightOf="@id/button_play_recording"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/recording_image" />
 
     <com.google.android.gms.ads.AdView
         android:id="@+id/adView"
