@@ -15,18 +15,21 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.SystemClock;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.LinearInterpolator;
 import android.view.animation.ScaleAnimation;
+import android.widget.Chronometer;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -72,6 +75,12 @@ public class RecordFragment extends Fragment {
     @BindView(R.id.adView)
     public AdView mAdView;
     private MediaPlayer mediaPlayer;
+    @BindView(R.id.chronometer)
+    public Chronometer chronometer;
+
+    private long elapsedTime;
+    private String TAG = "TAG";
+    private long timeWhenStopped = 0;
 
     private final int START = 0, STOP = 1;
     private static final int PERMISSIONS_REQUEST_CODE = 1001;
@@ -105,9 +114,6 @@ public class RecordFragment extends Fragment {
         buttonStartRecording.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Start Main Activity ...
-                /*Intent intent = new Intent(getContext(), HomepageActivity.class);
-                startActivity(intent);*/
                 handleRecordAndStoragePermissions();
             }
         });
@@ -132,6 +138,22 @@ public class RecordFragment extends Fragment {
                 }
             }
         });
+        chronometer.setOnChronometerTickListener(new Chronometer.OnChronometerTickListener() {
+            @Override
+            public void onChronometerTick(Chronometer chronometer) {
+                if (!state) {
+                    long minutes = ((SystemClock.elapsedRealtime() - chronometer.getBase())/1000) / 60;
+                    long seconds = ((SystemClock.elapsedRealtime() - chronometer.getBase())/1000) % 60;
+                    elapsedTime = SystemClock.elapsedRealtime();
+                    Log.d(TAG, "onChronometerTick: " + minutes + " : " + seconds);
+                } else {
+                    long minutes = ((elapsedTime - chronometer.getBase())/1000) / 60;
+                    long seconds = ((elapsedTime - chronometer.getBase())/1000) % 60;
+                    elapsedTime = elapsedTime + 1000;
+                    Log.d(TAG, "onChronometerTick: " + minutes + " : " + seconds);
+                }
+            }
+        });
 
         mAdView = new AdView(getContext());
         mAdView.setAdSize(AdSize.SMART_BANNER);
@@ -143,19 +165,19 @@ public class RecordFragment extends Fragment {
         mAdView.setAdListener(new AdListener() {
             @Override
             public void onAdLoaded() {
-                Toast.makeText(getContext(), "Ad is loaded", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getContext(), "Ad is loaded", Toast.LENGTH_SHORT).show();
             }
             @Override
             public void onAdClosed() {
-                Toast.makeText(getContext(), "Ad is closed!", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getContext(), "Ad is closed!", Toast.LENGTH_SHORT).show();
             }
             @Override
             public void onAdFailedToLoad(int errorCode) {
-                Toast.makeText(getContext(), "Ad failed to load! error code: " + errorCode, Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getContext(), "Ad failed to load! error code: " + errorCode, Toast.LENGTH_SHORT).show();
             }
             @Override
             public void onAdLeftApplication() {
-                Toast.makeText(getContext(), "Ad left application!", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getContext(), "Ad left application!", Toast.LENGTH_SHORT).show();
             }
             @Override
             public void onAdOpened() {
@@ -163,8 +185,6 @@ public class RecordFragment extends Fragment {
             }
         });
         mAdView.loadAd(adRequest);
-        /*TextView tvLabel = (TextView) view.findViewById(R.id.tvLabel);
-        tvLabel.setText(page + " -- " + title);*/
         return view;
     }
 
@@ -187,6 +207,13 @@ public class RecordFragment extends Fragment {
             try {
                 mediaRecorder.prepare();
                 mediaRecorder.start();
+                if (!state) {
+                    chronometer.setBase(SystemClock.elapsedRealtime());
+                    chronometer.start();
+                    timeWhenStopped = 0;
+                } else {
+                    chronometer.start();
+                }
                 state = true;
                 Toasty.custom(getContext(), getResources().getString(R.string.start_recording_toast_message),
                         getResources().getDrawable(R.drawable.ic_mic), getResources().getColor(R.color.startRecording),
@@ -214,6 +241,8 @@ public class RecordFragment extends Fragment {
 
             mediaRecorder.stop();
             mediaRecorder.release();
+            chronometer.stop();
+            chronometer.setText("00:00");
             state = false;
             resetPauseButton();
         } else {
@@ -227,6 +256,8 @@ public class RecordFragment extends Fragment {
     private void pauseRecording() {
         if (state && mediaRecorder != null) {
             if (!recordingStopped) {
+                timeWhenStopped = chronometer.getBase() - SystemClock.elapsedRealtime();
+                chronometer.stop();
                 playbackStopped = true;
                 recordingStopped = true;
                 setImage(R.drawable.ic_microphone, R.color.pauseRecording, R.color.pauseRecordingBackground);
@@ -252,6 +283,8 @@ public class RecordFragment extends Fragment {
                 getResources().getDrawable(R.drawable.ic_mic), getResources().getColor(R.color.startRecording),
                 Toast.LENGTH_SHORT, true, true).show();
         mediaRecorder.resume();
+        chronometer.setBase(SystemClock.elapsedRealtime() + timeWhenStopped);
+        chronometer.start();
         buttonPauseRecording.setImageResource(R.drawable.ic_pause);
     }
 

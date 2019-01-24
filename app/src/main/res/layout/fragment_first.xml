@@ -33,6 +33,19 @@
         app:layout_constraintRight_toRightOf="parent"
         ads:layout_constraintTop_toTopOf="parent" />
 
+    <Chronometer
+        android:id="@+id/chronometer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/recording_image"
+        android:layout_marginTop="300dp"
+        android:textSize="20sp"
+        ads:layout_constraintEnd_toEndOf="parent"
+        ads:layout_constraintStart_toStartOf="parent"
+        ads:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent" />
+
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
