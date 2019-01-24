@@ -6,20 +6,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/textview_sound_recorder_heading"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="8dp"
-        android:text="@string/app_title"
-        android:textColor="#000"
-        android:textSize="32sp"
-        android:textStyle="bold"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <ImageView
         android:id="@+id/recording_image_background"
         android:layout_width="200dp"
@@ -30,7 +16,7 @@
         app:layout_constraintDimensionRatio="1:1.6"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/textview_sound_recorder_heading" />
+        ads:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
         android:id="@+id/recording_image"
@@ -45,7 +31,30 @@
         app:layout_constraintDimensionRatio="1:1.6"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/textview_sound_recorder_heading" />
+        ads:layout_constraintTop_toTopOf="parent" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/black_36"
+        ads:layout_constraintBottom_toTopOf="@id/button_delete_recording"
+        android:layout_marginBottom="48dp"/>
+
+    <ImageButton
+        android:id="@+id/button_delete_recording"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_marginTop="56dp"
+        android:background="@drawable/white_circle_grey_border"
+        android:contentDescription="@string/delete"
+        android:padding="12dp"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_delete"
+        android:visibility="visible"
+        ads:layout_constraintLeft_toLeftOf="parent"
+        ads:layout_constraintRight_toLeftOf="@id/button_start_recording"
+        ads:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginBottom="48dp"/>
 
     <ImageButton
         android:id="@+id/button_start_recording"
@@ -58,9 +67,10 @@
         android:scaleType="centerInside"
         android:src="@drawable/ic_mic"
         android:visibility="visible"
-        app:layout_constraintEnd_toStartOf="@+id/button_pause_recording"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/recording_image" />
+        app:layout_constraintLeft_toRightOf="@id/button_delete_recording"
+        app:layout_constraintRight_toLeftOf="@id/button_pause_recording"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginBottom="48dp" />
 
     <ImageButton
         android:id="@+id/button_pause_recording"
@@ -75,7 +85,8 @@
         android:visibility="visible"
         app:layout_constraintLeft_toRightOf="@id/button_start_recording"
         app:layout_constraintRight_toLeftOf="@id/button_stop_recording"
-        app:layout_constraintTop_toBottomOf="@id/recording_image" />
+        ads:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginBottom="48dp"/>
 
     <ImageButton
         android:id="@+id/button_stop_recording"
@@ -89,9 +100,9 @@
         android:src="@drawable/ic_stop"
         android:visibility="visible"
         app:layout_constraintLeft_toRightOf="@id/button_pause_recording"
-        app:layout_constraintRight_toLeftOf="@id/button_play_recording"
-        app:layout_constraintTop_toBottomOf="@id/recording_image" />
-
+        app:layout_constraintRight_toRightOf="parent"
+        ads:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginBottom="48dp"/>
 
     <com.google.android.gms.ads.AdView
         android:id="@+id/adView"
