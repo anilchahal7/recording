@@ -1,24 +1,15 @@
 package in.iceberg.android.activity;
 
-        import android.Manifest;
-        import android.annotation.TargetApi;
-        import android.content.DialogInterface;
         import android.content.Intent;
-        import android.content.pm.PackageManager;
         import android.graphics.drawable.GradientDrawable;
         import android.graphics.drawable.LayerDrawable;
-        import android.iceberg.in.recording.BuildConfig;
         import android.iceberg.in.recording.R;
         import android.media.MediaPlayer;
         import android.media.MediaRecorder;
         import android.net.Uri;
-        import android.os.Build;
         import android.os.Bundle;
         import android.os.Environment;
         import android.provider.Settings;
-        import android.support.annotation.NonNull;
-        import android.support.annotation.RequiresApi;
-        import android.support.v4.app.ActivityCompat;
         import android.support.v4.app.Fragment;
         import android.support.v4.content.ContextCompat;
         import android.view.LayoutInflater;
@@ -30,7 +21,6 @@ package in.iceberg.android.activity;
         import android.widget.ImageButton;
         import android.widget.ImageView;
         import android.widget.Toast;
-        import com.google.android.gms.ads.MobileAds;
 
         import java.io.File;
         import java.io.IOException;
@@ -39,8 +29,6 @@ package in.iceberg.android.activity;
         import butterknife.ButterKnife;
         import es.dmoral.toasty.Toasty;
         import in.iceberg.android.apputil.TextUtils;
-        import in.iceberg.android.apputil.Util;
-        import in.iceberg.android.db.AppRecordData;
 
 public class PlayFragment extends Fragment {
 
@@ -53,6 +41,8 @@ public class PlayFragment extends Fragment {
 
     @BindView(R.id.button_play_recording)
     public ImageButton buttonPlayRecording;
+    @BindView(R.id.button_share_recording)
+    public ImageButton buttonShareRecording;
     @BindView(R.id.recording_image)
     public ImageView recordingImage;
     @BindView(R.id.recording_image_background)
@@ -84,7 +74,6 @@ public class PlayFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_second, container, false);
         ButterKnife.bind(this, view.getRootView());
 
-
         buttonPlayRecording.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -92,6 +81,12 @@ public class PlayFragment extends Fragment {
                 if (TextUtils.isNotNullOrEmpty(output)) {
                     playRecording();
                 }
+            }
+        });
+        buttonShareRecording.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                shareRecording();
             }
         });
 
@@ -142,6 +137,7 @@ public class PlayFragment extends Fragment {
                     @Override
                     public void onCompletion(MediaPlayer mediaPlayer) {
                         setImage(R.drawable.ic_microphone, R.color.black, R.color.full_transparent);
+                        buttonPlayRecording.setImageResource(R.drawable.ic_play);
                     }
                 });
                 Toasty.custom(getContext(), getResources().getString(R.string.play_recording_toast_message),
