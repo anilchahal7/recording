@@ -194,7 +194,12 @@ public class RecordFragment extends Fragment {
         playbackStopped = true;
         recordingStopped = false;
         mediaRecorder = new MediaRecorder();
-        output = Environment.getExternalStorageDirectory().getAbsolutePath() + "/recording.mp3";
+        File myDir = new File(Environment.getExternalStorageDirectory().getAbsolutePath(), "RecordingApp");
+        if(!(myDir.exists() && myDir.isDirectory())) {
+            myDir.mkdir();
+        }
+
+        output = Environment.getExternalStorageDirectory().getAbsolutePath() + "/RecordingApp/recording.mp3";
         if (mediaRecorder != null) {
             setButtons(START);
             setImage(R.drawable.ic_microphone, R.color.startRecording, R.color.startRecordingBackground);

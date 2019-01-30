@@ -4,7 +4,8 @@
     xmlns:ads="http://schemas.android.com/apk/res-auto"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/white">
 
     <ImageView
         android:id="@+id/recording_image_background"
@@ -33,43 +34,23 @@
         app:layout_constraintRight_toRightOf="parent"
         ads:layout_constraintTop_toTopOf="parent" />
 
+    <ListView
+        android:id="@+id/playlist"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        ads:layout_constraintTop_toBottomOf="@id/separator"
+        ads:layout_constraintLeft_toLeftOf="parent"
+        ads:layout_constraintRight_toRightOf="parent"
+        android:layout_marginTop="20dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"/>
+
     <View
+        android:id="@+id/separator"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="@color/black_36"
-        ads:layout_constraintBottom_toTopOf="@id/button_play_recording"
-        android:layout_marginBottom="48dp"/>
+        ads:layout_constraintTop_toBottomOf="@id/recording_image" />
 
-    <ImageButton
-        android:id="@+id/button_play_recording"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
-        android:layout_marginTop="56dp"
-        android:background="@drawable/white_circle_grey_border"
-        android:contentDescription="@string/play"
-        android:padding="12dp"
-        android:scaleType="centerInside"
-        android:src="@drawable/ic_play"
-        android:visibility="visible"
-        ads:layout_constraintLeft_toLeftOf="parent"
-        ads:layout_constraintRight_toLeftOf="@id/button_share_recording"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_marginBottom="48dp" />
-
-    <ImageButton
-        android:id="@+id/button_share_recording"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
-        android:layout_marginTop="56dp"
-        android:background="@drawable/white_circle_grey_border"
-        android:contentDescription="@string/play"
-        android:padding="12dp"
-        android:scaleType="centerInside"
-        android:src="@drawable/ic_share"
-        android:visibility="visible"
-        ads:layout_constraintLeft_toRightOf="@id/button_play_recording"
-        ads:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_marginBottom="48dp" />
 
 </android.support.constraint.ConstraintLayout>
