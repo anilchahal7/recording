@@ -47,10 +47,6 @@ public class PlayFragment extends Fragment implements PlayBackRowClickListener {
     private MediaRecorder mediaRecorder;
     private boolean state, recordingStopped, playbackStopped;
 
-    /*@BindView(R.id.button_play_recording)
-    public ImageButton buttonPlayRecording;
-    @BindView(R.id.button_share_recording)
-    public ImageButton buttonShareRecording;*/
     @BindView(R.id.recording_image)
     public ImageView recordingImage;
     @BindView(R.id.recording_image_background)
@@ -61,6 +57,9 @@ public class PlayFragment extends Fragment implements PlayBackRowClickListener {
 
     private final int START = 0, STOP = 1;
     private static final int PERMISSIONS_REQUEST_CODE = 1001;
+    private PlayListAdapter adapter;
+    private final String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/RecordingApp";
+    private ArrayList<HashMap<String, String>> songList;
 
     public static PlayFragment newInstance(int page, String title) {
         PlayFragment fragmentFirst = new PlayFragment();
@@ -76,6 +75,33 @@ public class PlayFragment extends Fragment implements PlayBackRowClickListener {
         super.onCreate(savedInstanceState);
         page = getArguments().getInt("someInt", 0);
         title = getArguments().getString("someTitle");
+
+        ((HomepageActivity)getActivity()).setFragmentRefreshListener(new HomepageActivity.FragmentRefreshListener() {
+            @Override
+            public void onRefresh() {
+                ArrayList<HashMap<String, String>> songListNew = getPlayList(path);
+                if (songListNew != null && !songListNew.equals(songList)) {
+                    songList.clear();
+                    songList.addAll(songListNew);
+                    List<String> fileNameList;
+                    List<String> filePathList;
+                    if (songList != null) {
+                        fileNameList = new ArrayList<>();
+                        filePathList = new ArrayList<>();
+                        for (int i = 0; i < songList.size(); i++) {
+                            fileNameList.add(songList.get(i).get("file_name"));
+                            filePathList.add(songList.get(i).get("file_path"));
+                        }
+                        if (fileNameList.size() > 0) {
+                            adapter.setFileNameList(fileNameList);
+                            adapter.setFilePathList(filePathList);
+                            adapter.notifyDataSetChanged();
+                        }
+                    }
+                }
+            }
+        });
+
     }
 
     @Override
@@ -83,26 +109,9 @@ public class PlayFragment extends Fragment implements PlayBackRowClickListener {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_second, container, false);
         ButterKnife.bind(this, view.getRootView());
-        setPlayList();
-
-        /*buttonPlayRecording.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                output = Environment.getExternalStorageDirectory().getAbsolutePath() + "/RecordingApp/recording.mp3";
-                if (TextUtils.isNotNullOrEmpty(output)) {
-                    playRecording(output);
-                }
-            }
-        });*/
-        /*buttonShareRecording.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                output = Environment.getExternalStorageDirectory().getAbsolutePath() + "/RecordingApp/recording.mp3";
-                shareRecording(output);
-            }
-        });*/
 
         mediaPlayer = new MediaPlayer();
+        setPlayList();
 
         return view;
     }
@@ -164,19 +173,6 @@ public class PlayFragment extends Fragment implements PlayBackRowClickListener {
 
     }
 
-    private void shareRecording(String filePath) {
-        if (TextUtils.isNotNullOrEmpty(filePath)) {
-            File file = new File(filePath);
-            if (file.exists()) {
-                Uri uri = Uri.parse(filePath);
-                Intent share = new Intent(Intent.ACTION_SEND);
-                share.setType("audio/*");
-                share.putExtra(Intent.EXTRA_STREAM, uri);
-                startActivity(Intent.createChooser(share, "Share Sound File"));
-            }
-        }
-    }
-
     private void setDrawableColor(int indicatorColor) {
         LayerDrawable drawableFile = (LayerDrawable) recordingImageBackground.getBackground().mutate();
         GradientDrawable gradientDrawable = (GradientDrawable) drawableFile.findDrawableByLayerId(R.id.circle_background);
@@ -226,9 +222,8 @@ public class PlayFragment extends Fragment implements PlayBackRowClickListener {
         startActivity(myAppSettings);
     }
 
-    private void setPlayList() {
-        String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/RecordingApp";
-        final ArrayList<HashMap<String, String>> songList = getPlayList(path);
+    public void setPlayList() {
+        songList = getPlayList(path);
         List<String> fileNameList;
         List<String> filePathList;
         if (songList != null) {
@@ -239,17 +234,8 @@ public class PlayFragment extends Fragment implements PlayBackRowClickListener {
                 filePathList.add(songList.get(i).get("file_path"));
             }
             if (fileNameList.size() > 0) {
-                ArrayAdapter<String> adapter = new PlayListAdapter(getContext(), fileNameList, filePathList, this);
+                adapter = new PlayListAdapter(getContext(), fileNameList, filePathList, this);
                 playlist.setAdapter(adapter);
-                playlist.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                        String filePath = songList.get(position).get("file_path");
-                        if (TextUtils.isNotNullOrEmpty(filePath)) {
-//                            playRecording(filePath);
-                        }
-                    }
-                });
             }
         }
     }

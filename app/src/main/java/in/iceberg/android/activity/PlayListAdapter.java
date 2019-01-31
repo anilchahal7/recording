@@ -5,15 +5,20 @@ import android.content.Intent;
 import android.iceberg.in.recording.R;
 import android.net.Uri;
 import android.view.LayoutInflater;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
+import android.widget.PopupMenu;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.File;
 import java.util.List;
 
+import es.dmoral.toasty.Toasty;
 import in.iceberg.android.apputil.TextUtils;
 import in.iceberg.android.interfaces.PlayBackRowClickListener;
 
@@ -32,26 +37,12 @@ public class PlayListAdapter extends ArrayAdapter<String> {
 
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
-        // Get the data item for this position
-        String user = getItem(position);
-        // Check if an existing view is being reused, otherwise inflate the view
         if (convertView == null) {
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.item_playlist_row, parent, false);
         }
-        // Lookup view for data population
-        TextView fileName = (TextView) convertView.findViewById(R.id.audio_name);
-        ImageButton shareButton = (ImageButton) convertView.findViewById(R.id.share_recording);
-        fileName.setText(fileNameList.get(position));
-        shareButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String filePath = filePathList.get(position);
-                if (TextUtils.isNotNullOrEmpty(filePath)) {
-                    shareRecording(filePath);
-                }
-            }
-        });
 
+        TextView fileName = convertView.findViewById(R.id.audio_name);
+        fileName.setText(getItem(position));
         fileName.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -59,9 +50,41 @@ public class PlayListAdapter extends ArrayAdapter<String> {
             }
         });
 
-        // Populate the data into the template view using the data object
-        // Return the completed view to render on screen
+        ImageButton overflowButton = convertView.findViewById(R.id.overflow);
+        overflowButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showMenu(v, position);
+            }
+        });
+
         return convertView;
+    }
+
+    public void showMenu(View v, final int position) {
+        PopupMenu popup = new PopupMenu(getContext(), v);
+
+        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.share:
+                        String filePath = filePathList.get(position);
+                        if (TextUtils.isNotNullOrEmpty(filePath)) {
+                            shareRecording(filePath);
+                        }
+                        return true;
+                    case R.id.delete:
+                        deleteRecording(filePathList.get(position), position);
+                        notifyDataSetChanged();
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+        });
+        popup.inflate(R.menu.playback_item_menu);
+        popup.show();
     }
 
     private void shareRecording(String filePath) {
@@ -75,5 +98,37 @@ public class PlayListAdapter extends ArrayAdapter<String> {
                 getContext().startActivity(Intent.createChooser(share, "Share Sound File"));
             }
         }
+    }
+
+    private void deleteRecording(String pathName, int position) {
+        File file = new File(pathName);
+        if (file.exists()) {
+            boolean deleted = file.delete();
+            if (deleted) {
+                fileNameList.remove(position);
+                filePathList.remove(position);
+                Toasty.custom(getContext(), getContext().getString(R.string.deleted_recording_toast_message),
+                        getContext().getResources().getDrawable(R.drawable.ic_delete), getContext().getResources().getColor(R.color.startRecording),
+                        Toast.LENGTH_SHORT, true, true).show();
+            }
+        }
+    }
+
+    @Override
+    public String getItem(int position) {
+        return fileNameList.get(position);
+    }
+
+    @Override
+    public int getCount() {
+        return fileNameList.size();
+    }
+
+    public void setFileNameList(List<String> fileNameList) {
+        this.fileNameList = fileNameList;
+    }
+
+    public void setFilePathList(List<String> filePathList) {
+        this.filePathList = filePathList;
     }
 }

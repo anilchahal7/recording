@@ -2,6 +2,7 @@ package in.iceberg.android.activity;
 
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -22,6 +23,7 @@ import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,6 +32,7 @@ import android.view.animation.Animation;
 import android.view.animation.LinearInterpolator;
 import android.view.animation.ScaleAnimation;
 import android.widget.Chronometer;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -65,8 +68,6 @@ public class RecordFragment extends Fragment {
     public ImageButton buttonPauseRecording;
     @BindView(R.id.button_stop_recording)
     public ImageButton buttonStopRecording;
-    @BindView(R.id.button_delete_recording)
-    public ImageButton buttonDeleteRecording;
     @BindView(R.id.recording_image)
     public ImageView recordingImage;
     @BindView(R.id.recording_image_background)
@@ -83,6 +84,8 @@ public class RecordFragment extends Fragment {
 
     private final int START = 0, STOP = 1;
     private static final int PERMISSIONS_REQUEST_CODE = 1001;
+
+    private String fileName;
 
     public static RecordFragment newInstance(int page, String title) {
         RecordFragment fragmentFirst = new RecordFragment();
@@ -119,7 +122,28 @@ public class RecordFragment extends Fragment {
         buttonStopRecording.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                stopRecording();
+                AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                builder.setTitle("Enter file name");
+
+                final EditText input = new EditText(getContext());
+                input.setInputType(InputType.TYPE_CLASS_TEXT);
+                builder.setView(input);
+
+                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        fileName = input.getText().toString();
+                        stopRecording();
+                    }
+                });
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+
+                builder.show();
             }
         });
         buttonPauseRecording.setOnClickListener(new View.OnClickListener() {
@@ -127,14 +151,6 @@ public class RecordFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 pauseRecording();
-            }
-        });
-        buttonDeleteRecording.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (TextUtils.isNotNullOrEmpty(output)) {
-                    deleteRecording();
-                }
             }
         });
         chronometer.setOnChronometerTickListener(new Chronometer.OnChronometerTickListener() {
@@ -248,6 +264,12 @@ public class RecordFragment extends Fragment {
             chronometer.stop();
             chronometer.setText("00:00");
             state = false;
+
+            File sdcard = new File(Environment.getExternalStorageDirectory().getAbsolutePath(), "RecordingApp");
+            File from = new File(sdcard,"recording.mp3");
+            File to = new File(sdcard,fileName + ".mp3");
+            from.renameTo(to);
+
             resetPauseButton();
         } else {
             Toasty.custom(getContext(), getResources().getString(R.string.stop_recording_toast_message),
@@ -309,23 +331,6 @@ public class RecordFragment extends Fragment {
             recordingImageBackground.startAnimation(animation);
         } else {
             recordingImageBackground.clearAnimation();
-        }
-    }
-
-    private void deleteRecording() {
-        stopRecording();
-        File file = new File(output);
-        if (file.exists() && !state) {
-            setImage(R.drawable.ic_microphone, R.color.black, R.color.full_transparent);
-
-            boolean deleted = file.delete();
-            if (deleted) {
-                Toasty.custom(getContext(), getResources().getString(R.string.deleted_recording_toast_message),
-                        getResources().getDrawable(R.drawable.ic_delete), getResources().getColor(R.color.startRecording),
-                        Toast.LENGTH_SHORT, true, true).show();
-            }
-        } else if (state) {
-            Toasty.error(getContext(), getResources().getString(R.string.stop_recording_before_toast_message)).show();
         }
     }
 
