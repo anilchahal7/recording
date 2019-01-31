@@ -1,36 +1,44 @@
 package in.iceberg.android.activity;
 
-        import android.content.Intent;
-        import android.graphics.drawable.GradientDrawable;
-        import android.graphics.drawable.LayerDrawable;
-        import android.iceberg.in.recording.R;
-        import android.media.MediaPlayer;
-        import android.media.MediaRecorder;
-        import android.net.Uri;
-        import android.os.Bundle;
-        import android.os.Environment;
-        import android.provider.Settings;
-        import android.support.v4.app.Fragment;
-        import android.support.v4.content.ContextCompat;
-        import android.view.LayoutInflater;
-        import android.view.View;
-        import android.view.ViewGroup;
-        import android.view.animation.Animation;
-        import android.view.animation.LinearInterpolator;
-        import android.view.animation.ScaleAnimation;
-        import android.widget.ImageButton;
-        import android.widget.ImageView;
-        import android.widget.Toast;
+import android.content.Intent;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.LayerDrawable;
+import android.iceberg.in.recording.R;
+import android.media.MediaPlayer;
+import android.media.MediaRecorder;
+import android.net.Uri;
+import android.os.Bundle;
+import android.os.Environment;
+import android.provider.Settings;
+import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.LinearInterpolator;
+import android.view.animation.ScaleAnimation;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.Toast;
 
-        import java.io.File;
-        import java.io.IOException;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
-        import butterknife.BindView;
-        import butterknife.ButterKnife;
-        import es.dmoral.toasty.Toasty;
-        import in.iceberg.android.apputil.TextUtils;
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import es.dmoral.toasty.Toasty;
+import in.iceberg.android.apputil.TextUtils;
+import in.iceberg.android.interfaces.PlayBackRowClickListener;
 
-public class PlayFragment extends Fragment {
+public class PlayFragment extends Fragment implements PlayBackRowClickListener {
 
     private String title;
     private int page;
@@ -39,18 +47,19 @@ public class PlayFragment extends Fragment {
     private MediaRecorder mediaRecorder;
     private boolean state, recordingStopped, playbackStopped;
 
-    @BindView(R.id.button_play_recording)
-    public ImageButton buttonPlayRecording;
-    @BindView(R.id.button_share_recording)
-    public ImageButton buttonShareRecording;
     @BindView(R.id.recording_image)
     public ImageView recordingImage;
     @BindView(R.id.recording_image_background)
     public ImageView recordingImageBackground;
     private MediaPlayer mediaPlayer;
+    @BindView(R.id.playlist)
+    public ListView playlist;
 
     private final int START = 0, STOP = 1;
     private static final int PERMISSIONS_REQUEST_CODE = 1001;
+    private PlayListAdapter adapter;
+    private final String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/RecordingApp";
+    private ArrayList<HashMap<String, String>> songList;
 
     public static PlayFragment newInstance(int page, String title) {
         PlayFragment fragmentFirst = new PlayFragment();
@@ -66,6 +75,33 @@ public class PlayFragment extends Fragment {
         super.onCreate(savedInstanceState);
         page = getArguments().getInt("someInt", 0);
         title = getArguments().getString("someTitle");
+
+        ((HomepageActivity)getActivity()).setFragmentRefreshListener(new HomepageActivity.FragmentRefreshListener() {
+            @Override
+            public void onRefresh() {
+                ArrayList<HashMap<String, String>> songListNew = getPlayList(path);
+                if (songListNew != null && !songListNew.equals(songList)) {
+                    songList.clear();
+                    songList.addAll(songListNew);
+                    List<String> fileNameList;
+                    List<String> filePathList;
+                    if (songList != null) {
+                        fileNameList = new ArrayList<>();
+                        filePathList = new ArrayList<>();
+                        for (int i = 0; i < songList.size(); i++) {
+                            fileNameList.add(songList.get(i).get("file_name"));
+                            filePathList.add(songList.get(i).get("file_path"));
+                        }
+                        if (fileNameList.size() > 0) {
+                            adapter.setFileNameList(fileNameList);
+                            adapter.setFilePathList(filePathList);
+                            adapter.notifyDataSetChanged();
+                        }
+                    }
+                }
+            }
+        });
+
     }
 
     @Override
@@ -74,45 +110,30 @@ public class PlayFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_second, container, false);
         ButterKnife.bind(this, view.getRootView());
 
-        buttonPlayRecording.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                output = Environment.getExternalStorageDirectory().getAbsolutePath() + "/recording.mp3";
-                if (TextUtils.isNotNullOrEmpty(output)) {
-                    playRecording();
-                }
-            }
-        });
-        buttonShareRecording.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                shareRecording();
-            }
-        });
-
         mediaPlayer = new MediaPlayer();
+        setPlayList();
 
         return view;
     }
 
-    private void playRecording() {
+    private void playRecording(String filePath) {
         if (mediaPlayer.isPlaying()) {
             recordingStopped = true;
             playbackStopped = true;
             mediaPlayer.stop();
-            buttonPlayRecording.setImageResource(R.drawable.ic_play);
+//            buttonPlayRecording.setImageResource(R.drawable.ic_play);
             setImage(R.drawable.ic_speaker_icon, R.color.black, R.color.full_transparent);
             Toasty.custom(getContext(), getResources().getString(R.string.stop_playback_toast_message),
                     getResources().getDrawable(R.drawable.ic_stop), getResources().getColor(R.color.stopRecording),
                     Toast.LENGTH_SHORT, true, true).show();
-        } else{
+        } else {
             recordingStopped = true;
             playbackStopped = false;
-            File file = new File(output);
+            File file = new File(filePath);
             if (file.exists() && !state) {
                 setImage(R.drawable.ic_speaker_icon, R.color.black, R.color.startRecordingBackground);
                 try {
-                    mediaPlayer.setDataSource(output);
+                    mediaPlayer.setDataSource(filePath);
                 } catch (IllegalArgumentException e) {
                     e.printStackTrace();
                 } catch (IllegalStateException e) {
@@ -132,12 +153,12 @@ public class PlayFragment extends Fragment {
                     e.printStackTrace();
                 }
                 mediaPlayer.start();
-                buttonPlayRecording.setImageResource(R.drawable.ic_stop);
+//                buttonPlayRecording.setImageResource(R.drawable.ic_stop);
                 mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                     @Override
                     public void onCompletion(MediaPlayer mediaPlayer) {
                         setImage(R.drawable.ic_microphone, R.color.black, R.color.full_transparent);
-                        buttonPlayRecording.setImageResource(R.drawable.ic_play);
+//                        buttonPlayRecording.setImageResource(R.drawable.ic_play);
                     }
                 });
                 Toasty.custom(getContext(), getResources().getString(R.string.play_recording_toast_message),
@@ -150,19 +171,6 @@ public class PlayFragment extends Fragment {
             }
         }
 
-    }
-
-    private void shareRecording() {
-        if (TextUtils.isNotNullOrEmpty(output)) {
-            File file = new File(output);
-            if (file.exists()) {
-                Uri uri = Uri.parse(output);
-                Intent share = new Intent(Intent.ACTION_SEND);
-                share.setType("audio/*");
-                share.putExtra(Intent.EXTRA_STREAM, uri);
-                startActivity(Intent.createChooser(share, "Share Sound File"));
-            }
-        }
     }
 
     private void setDrawableColor(int indicatorColor) {
@@ -214,4 +222,45 @@ public class PlayFragment extends Fragment {
         startActivity(myAppSettings);
     }
 
+    public void setPlayList() {
+        songList = getPlayList(path);
+        List<String> fileNameList;
+        List<String> filePathList;
+        if (songList != null) {
+            fileNameList = new ArrayList<>();
+            filePathList = new ArrayList<>();
+            for (int i = 0; i < songList.size(); i++) {
+                fileNameList.add(songList.get(i).get("file_name"));
+                filePathList.add(songList.get(i).get("file_path"));
+            }
+            if (fileNameList.size() > 0) {
+                adapter = new PlayListAdapter(getContext(), fileNameList, filePathList, this);
+                playlist.setAdapter(adapter);
+            }
+        }
+    }
+
+    ArrayList<HashMap<String, String>> getPlayList(String rootPath) {
+        ArrayList<HashMap<String, String>> fileList = new ArrayList<>();
+        try {
+            File rootFolder = new File(rootPath);
+            File[] files = rootFolder.listFiles(); //here you will get NPE if directory doesn't contains  any file,handle it like this.
+            for (File file : files) {
+                if (file.getName().endsWith(".mp3")) {
+                    HashMap<String, String> song = new HashMap<>();
+                    song.put("file_path", file.getAbsolutePath());
+                    song.put("file_name", file.getName());
+                    fileList.add(song);
+                }
+            }
+            return fileList;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    @Override
+    public void playbackRowClick(String pathName) {
+        playRecording(pathName);
+    }
 }

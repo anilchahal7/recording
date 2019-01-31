@@ -18,7 +18,11 @@ public class HomepageActivity extends AppCompatActivity {
         vpPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int i, float v, int i1) {
-
+                switch (i) {
+                    case 1: if(getFragmentRefreshListener()!=null){
+                        getFragmentRefreshListener().onRefresh();
+                    }
+                }
             }
 
             @Override
@@ -33,4 +37,19 @@ public class HomepageActivity extends AppCompatActivity {
         });
 
     }
+
+    public FragmentRefreshListener getFragmentRefreshListener() {
+        return fragmentRefreshListener;
+    }
+
+    public void setFragmentRefreshListener(FragmentRefreshListener fragmentRefreshListener) {
+        this.fragmentRefreshListener = fragmentRefreshListener;
+    }
+
+    private FragmentRefreshListener fragmentRefreshListener;
+
+    public interface FragmentRefreshListener{
+        void onRefresh();
+    }
+
 }
